@@ -1,0 +1,7 @@
+venv/
+.env
+expiry_agent/.env
+__pycache__/
+.git/
+.adk/
+test_db.py

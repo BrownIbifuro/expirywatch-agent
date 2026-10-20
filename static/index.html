@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>ExpiryWatch Agent</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&family=DM+Serif+Display&display=swap" rel="stylesheet">
+<style>
+:root{--blue:#1A73E8;--mist:#F0F4FF;--ink:#333333;--amber:#C55500;--line:#dbe4f7;--muted:#6b7488}
+*{box-sizing:border-box;margin:0}
+body{font-family:Poppins,system-ui,sans-serif;background:var(--mist);color:var(--ink);display:grid;grid-template-columns:244px 1fr;min-height:100vh}
+aside{background:var(--blue);color:#fff;padding:24px 16px;display:flex;flex-direction:column;gap:6px;position:sticky;top:0;height:100vh}
+.brand{display:flex;gap:11px;align-items:center;padding:0 8px 24px}
+.logo{width:40px;height:40px;border-radius:12px;background:rgba(255,255,255,.18);display:grid;place-items:center}
+.brand b{display:block;font-size:17px;line-height:1.15}.brand small{font-size:11px;opacity:.8}
+nav a{display:flex;align-items:center;gap:10px;padding:11px 12px;border-radius:10px;color:#fff;text-decoration:none;font-size:14px;font-weight:500}
+nav a.on{background:#fff;color:var(--blue)}
+nav a:not(.on):hover{background:rgba(255,255,255,.14)}
+.badge{margin-left:auto;background:var(--amber);color:#fff;border-radius:99px;font-size:11px;padding:1px 9px}
+.rule{margin-top:auto;background:rgba(255,255,255,.14);border-radius:14px;padding:14px;font-size:12px;line-height:1.55}
+.rule b{display:block;font-size:13px;margin-bottom:3px}
+main{padding:28px 32px;display:flex;flex-direction:column;gap:20px;min-width:0}
+h1{font-family:'DM Serif Display',serif;font-weight:400;font-size:36px;line-height:1.1}
+.sub{color:var(--muted);font-size:14px;margin-top:6px}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+.stat{background:#fff;border:1px solid var(--line);border-radius:16px;padding:16px 20px}
+.stat span{font-size:12px;color:var(--muted)}
+.stat b{display:block;font-family:'DM Serif Display',serif;font-weight:400;font-size:36px;line-height:1.15}
+.stat.soon b{color:var(--amber)}.stat.all b{color:var(--blue)}
+.grid{display:grid;grid-template-columns:1.5fr 1fr;gap:20px;flex:1;min-height:0}
+.panel{background:#fff;border:1px solid var(--line);border-radius:20px;display:flex;flex-direction:column;min-height:460px;max-height:calc(100vh - 292px);overflow:hidden}
+.ph{display:flex;align-items:center;justify-content:space-between;padding:16px 20px;border-bottom:1px solid var(--line);font-weight:600;font-size:15px}
+.ph small{font-weight:400;color:var(--muted);font-size:12px}
+#msgs,#list{flex:1;overflow-y:auto;padding:18px 20px;display:flex;flex-direction:column;gap:12px}
+.msg{max-width:88%;padding:12px 15px;border-radius:16px;font-size:14px;line-height:1.6}
+.msg p+p{margin-top:6px}.msg li{margin-left:18px}
+.bot{background:var(--mist);border-bottom-left-radius:4px;align-self:flex-start}
+.me{background:var(--blue);color:#fff;border-bottom-right-radius:4px;align-self:flex-end}
+.err{background:#fff3e8;color:var(--amber)}
+.dots i{display:inline-block;width:6px;height:6px;margin-right:3px;border-radius:50%;background:var(--blue);animation:b 1s infinite}
+.dots i:nth-child(2){animation-delay:.15s}.dots i:nth-child(3){animation-delay:.3s}
+@keyframes b{50%{opacity:.25}}
+.chips{display:flex;gap:8px;flex-wrap:wrap;padding:0 20px 12px}
+.chips button{font:500 12px Poppins;border:1px solid var(--line);background:#fff;color:var(--blue);border-radius:99px;padding:7px 13px;cursor:pointer}
+.chips button:hover{background:var(--mist)}
+form{display:flex;gap:10px;padding:14px 20px;border-top:1px solid var(--line)}
+input{flex:1;font:14px Poppins;border:1px solid var(--line);border-radius:12px;padding:12px 14px;color:var(--ink)}
+.go{font:600 14px Poppins;background:var(--blue);color:#fff;border:0;border-radius:12px;padding:0 22px;cursor:pointer}
+.go:disabled{opacity:.5}
+:focus-visible{outline:2px solid var(--blue);outline-offset:2px}
+.card{border:1px solid var(--line);border-radius:16px;padding:14px 16px;display:flex;flex-direction:column;gap:8px}
+.card .t{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.card .t b{font-size:14px}
+.days{background:var(--amber);color:#fff;font-size:12px;font-weight:600;border-radius:8px;padding:2px 9px;white-space:nowrap}
+.pill{align-self:flex-start;background:var(--mist);color:var(--blue);font-size:12px;font-weight:600;border-radius:99px;padding:3px 11px}
+.card p{font-size:13px;color:var(--muted);line-height:1.5}
+.btns{display:flex;gap:8px}
+.btns button{font:600 13px Poppins;border-radius:10px;padding:8px 16px;cursor:pointer;border:1px solid var(--blue)}
+.ok{background:var(--blue);color:#fff}.no{background:#fff;color:var(--blue)}
+.card.approved{background:var(--mist);border-color:var(--blue)}
+.done{font-size:13px;font-weight:600;color:var(--blue)}
+.empty{color:var(--muted);font-size:13px;line-height:1.6;margin:auto;text-align:center;max-width:230px}
+@media(max-width:900px){
+body{grid-template-columns:1fr}
+aside{position:static;height:auto;flex-direction:row;flex-wrap:wrap;align-items:center;padding:14px 16px}
+.brand{padding:0}.rule{display:none}nav{display:flex;gap:4px;margin-left:auto}
+main{padding:20px 16px}.grid{grid-template-columns:1fr}.panel{max-height:none}
+.stats{grid-template-columns:1fr 1fr 1fr;gap:8px}.stat{padding:12px}.stat b{font-size:28px}h1{font-size:28px}}
+@media(prefers-reduced-motion:reduce){.dots i{animation:none}}
+</style>
+</head>
+<body>
+<aside>
+  <div class="brand">
+    <div class="logo"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><path d="M12 3l8 3v6c0 4.5-3.2 7.8-8 9-4.8-1.2-8-4.5-8-9V6l8-3z"/><path d="M8.5 12l2.5 2.5 4.5-5"/></svg></div>
+    <div><b>ExpiryWatch</b><small>Agent</small></div>
+  </div>
+  <nav>
+    <a class="on" href="#">Agent console</a>
+    <a href="#list">Approvals <span class="badge" id="n" hidden>0</span></a>
+    <a id="back" href="http://localhost/retail_monitoring/public/dashboard.php">Back to dashboard</a>
+  </nav>
+  <div class="rule"><b>You stay in charge</b>The agent reads stock and suggests. Nothing changes until you press Approve.</div>
+</aside>
+<main>
+  <header>
+    <h1>What needs action today?</h1>
+    <p class="sub">Ask about stock. The agent checks your inventory and proposes what to do next.</p>
+  </header>
+  <section class="stats">
+    <div class="stat"><span>Already expired</span><b id="s-exp">–</b></div>
+    <div class="stat soon"><span>Expiring in 30 days</span><b id="s-soon">–</b></div>
+    <div class="stat all"><span>Items in stock</span><b id="s-all">–</b></div>
+  </section>
+  <section class="grid">
+    <div class="panel">
+      <div class="ph">Ask the agent <small id="tag">Gemini · read-only</small></div>
+      <div id="msgs"></div>
+      <div class="chips">
+        <button>What needs action today?</button>
+        <button>What expires this week?</button>
+        <button>Check the next 14 days</button>
+      </div>
+      <form id="f"><input id="q" placeholder="Ask about expiring stock" autocomplete="off" aria-label="Message"><button class="go" id="go">Send</button></form>
+    </div>
+    <div class="panel">
+      <div class="ph">Needs your approval <small id="pc"></small></div>
+      <div id="list"></div>
+    </div>
+  </section>
+</main>
+<script>
+const $=s=>document.querySelector(s),sid='s'+Date.now();
+const esc=t=>t.replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const md=t=>esc(t).replace(/\*\*(.+?)\*\*/g,'<b>$1</b>').split('\n').map(l=>/^\s*[*-] /.test(l)?'<li>'+l.replace(/^\s*[*-] /,'')+'</li>':l.trim()?'<p>'+l+'</p>':'').join('');
+const L={discount:'Discount',move_to_front:'Move to front',reorder_review:'Review reorder'};
+function add(c,h){const d=document.createElement('div');d.className='msg '+c;d.innerHTML=h;$('#msgs').append(d);$('#msgs').scrollTop=1e9;return d}
+function draw(list){
+  const p=list.filter(s=>s.status==='pending').length;
+  $('#n').textContent=p;$('#n').hidden=!p;$('#pc').textContent=p?p+' waiting':'';
+  $('#list').innerHTML=list.length?list.map(s=>`<article class="card ${s.status}">
+    <div class="t"><b>${esc(s.product)}</b><span class="days">${s.days_left}d left</span></div>
+    <span class="pill">${L[s.action]||esc(s.action)}</span><p>${esc(s.reason)}</p>
+    ${s.status==='approved'?'<span class="done">Approved. Flagged in ExpiryWatch.</span>':
+    `<div class="btns"><button class="ok" onclick="act('${esc(s.id)}','approve')">Approve</button><button class="no" onclick="act('${esc(s.id)}','dismiss')">Dismiss</button></div>`}
+  </article>`).join(''):'<p class="empty">No suggestions yet. Ask the agent what needs action and its proposals will appear here.</p>'}
+async function act(id,v){const r=await fetch('/api/suggestions/'+encodeURIComponent(id)+'/'+v,{method:'POST'});if(r.ok)draw((await r.json()).suggestions)}
+async function stats(){try{const d=await (await fetch('/api/stats')).json();$('#s-exp').textContent=d.expired;$('#s-soon').textContent=d.soon;$('#s-all').textContent=d.total;if(d.demo){$('#back').style.display='none';$('#tag').textContent='Gemini · demo data'}}catch(e){}}
+async function send(t){
+  t=t.trim();if(!t)return;add('me',esc(t));$('#q').value='';
+  const w=add('bot','<span class="dots"><i></i><i></i><i></i></span> Checking inventory');$('#go').disabled=true;
+  try{
+    const r=await fetch('/api/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({message:t,session_id:sid})});
+    const d=await r.json();if(!r.ok)throw new Error(d.detail);
+    w.innerHTML=md(d.reply||'No answer came back. Try asking again.');draw(d.suggestions);
+  }catch(e){w.classList.add('err');w.innerHTML=/limit/.test(e.message)?e.message:'The agent could not answer. The model may be busy, so try again in a moment.'}
+  $('#go').disabled=false;$('#msgs').scrollTop=1e9;stats();
+}
+$('#f').onsubmit=e=>{e.preventDefault();send($('#q').value)};
+document.querySelectorAll('.chips button').forEach(b=>b.onclick=()=>send(b.textContent));
+add('bot','<p>Ask what is about to expire. I read your inventory and suggest actions, and you approve each one.</p>');
+draw([]);stats();
+fetch('/api/suggestions').then(r=>r.json()).then(d=>draw(d.suggestions)).catch(()=>{});
+</script>
+</body>
+</html>
